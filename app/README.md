@@ -145,3 +145,10 @@ keytool -list -v -keystore "%LOCALAPPDATA%\Xamarin\Mono for Android\debug.keysto
 Copiar la línea que empieza con `SHA1:`. (Si `keytool` no se reconoce, usar la *Developer PowerShell* de Visual Studio.)
 
 > Mientras la pantalla de consentimiento esté en modo *Prueba*, solo pueden ingresar los Gmail agregados como usuarios de prueba.
+
+## Cómo trabajamos
+
+- *Metodología:* Scrum, con 3 Sprints y tablero Kanban en Trello: https://trello.com/b/NdMzkBb1/turnos-salud-scrum
+- *Git Flow:* master tiene solo versiones estables, develop integra el trabajo del Sprint y cada tarea se hace en una rama feature/ con el ID de su tarjeta de Trello.
+- *Pull Requests:* ningún cambio entra a develop sin la revisión y aprobación de otro integrante.
+- *Seguridad:* las claves y contraseñas no se suben al repositorio (.gitignore); solo se sube una plantilla de ejemplo.
