@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Inicio (HomePage)  ·  primera pestaña de la barra de abajo
+    VIEWMODEL: HomeViewModel.cs  ·  conexión: BindingContext en HomePage.xaml.cs
+    Muestra: saludo, buscador, accesos rápidos a especialidades y el próximo turno.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="Inicio"
+    x:DataType="vm:HomeViewModel"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Encabezado azul. BackgroundColor usa StaticResource (color fijo). -->
+        <!-- Encabezado azul -->
+        <Grid
+            Padding="20,18,12,22"
+            BackgroundColor="{StaticResource Primary}"
+            ColumnDefinitions="*,Auto">
+            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                <!-- ENLACE: Text = Saludo. El ViewModel arma "Hola, María" con el usuario de la sesión. -->
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="24"
+                    SemanticProperties.HeadingLevel="Level1"
+                    Text="{Binding Saludo}"
+                    TextColor="White" />
+                <Label
+                    FontSize="14"
+                    Text="¿Qué turno querés sacar hoy?"
+                    TextColor="{StaticResource OnPrimarySoft}" />
+            </VerticalStackLayout>
+
+            <Grid Grid.Column="1" VerticalOptions="Center">
+                <!-- ENLACE DE COMANDO: NotificacionesCommand → muestra el recordatorio del próximo turno. -->
+                <ImageButton
+                    Padding="10"
+                    BackgroundColor="Transparent"
+                    Command="{Binding NotificacionesCommand}"
+                    HeightRequest="46"
+                    SemanticProperties.Description="Notificaciones"
+                    Source="ic_bell.png"
+                    WidthRequest="46" />
+                <!-- Punto de aviso si hay un turno próximo -->
+                <!--
+                    ENLACE: IsVisible = TieneProximoTurno (true si existe ProximoTurno).
+                    El punto naranja de la campana aparece solo si hay un turno por venir.
+                -->
+                <Ellipse
+                    Margin="0,10,10,0"
+                    Fill="#FFB020"
+                    HeightRequest="9"
+                    HorizontalOptions="End"
+                    InputTransparent="True"
+                    IsVisible="{Binding TieneProximoTurno}"
+                    VerticalOptions="Start"
+                    WidthRequest="9" />
+            </Grid>
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,16,16,24" Spacing="16">
+
+                <!-- Buscador. -->
+                <!-- Buscador -->
+                <Border
+                    Padding="14,2"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource BorderColor}"
+                    StrokeShape="RoundRectangle 12">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <!-- ENLACE DE COMANDO: tocar la lupa ejecuta BuscarAsync(). -->
+                        <ImageButton
+                            BackgroundColor="Transparent"
+                            Command="{Binding BuscarCommand}"
+                            HeightRequest="22"
+                            SemanticProperties.Description="Buscar"
+                            Source="ic_search.png"
+                            WidthRequest="22" />
+                        <!--
+                            ENLACE DOBLE VÍA: Text = TextoBusqueda (lo que se escribe llega al ViewModel).
+                            ReturnCommand = BuscarCommand: la tecla "Buscar" del teclado también busca.
+                        -->
+                        <Entry
+                            Grid.Column="1"
+                            IsSpellCheckEnabled="False"
+                            Placeholder="Buscar especialidad o médico..."
+                            ReturnCommand="{Binding BuscarCommand}"
+                            ReturnType="Search"
+                            Text="{Binding TextoBusqueda}" />
+                    </Grid>
+                </Border>
+
+                <!-- Accesos rápidos a especialidades -->
+                <!--
+                    LISTA ENLAZADA: BindableLayout.ItemsSource = Accesos (una ObservableCollection
+                    del ViewModel). Por cada elemento de la colección se dibuja una copia del
+                    ItemTemplate de abajo. Si el ViewModel agrega un elemento, aparece una tarjeta más.
+                -->
+                <FlexLayout
+                    Margin="-6,0"
+                    BindableLayout.ItemsSource="{Binding Accesos}"
+                    Direction="Row"
+                    Wrap="Wrap">
+                    <BindableLayout.ItemTemplate>
+                        <!--
+                            PLANTILLA DE CADA TARJETA. Ojo: x:DataType cambia a vm:AccesoItem.
+                            Dentro de la plantilla, {Binding Nombre} ya no es del HomeViewModel sino de
+                            CADA AccesoItem (ViewModels/Items.cs). Cada tarjeta tiene su propio "contexto".
+                        -->
+                        <DataTemplate x:DataType="vm:AccesoItem">
+                            <ContentView Padding="6" FlexLayout.Basis="50%">
+                                <!--
+                                    ENLACES de la tarjeta: BackgroundColor = Fondo, Stroke (borde) = Borde,
+                                    colores que vienen de la base de datos (tabla ESPECIALIDAD).
+                                -->
+                                <Border
+                                    Padding="10,18"
+                                    BackgroundColor="{Binding Fondo}"
+                                    HeightRequest="118"
+                                    SemanticProperties.Description="{Binding Nombre}"
+                                    Stroke="{Binding Borde}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <Border.GestureRecognizers>
+                                        <!-- ENLACE DE COMANDO: TocarCommand de ESE AccesoItem → abre los médicos de esa especialidad. -->
+                                        <TapGestureRecognizer Command="{Binding TocarCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="10" VerticalOptions="Center">
+                                        <!-- ENLACE: Source = Icono (nombre del archivo de imagen, por ejemplo ic_cardio.png). -->
+                                        <Image
+                                            HeightRequest="40"
+                                            HorizontalOptions="Center"
+                                            Source="{Binding Icono}"
+                                            WidthRequest="40" />
+                                        <!-- ENLACE: Text = Nombre de la especialidad. -->
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="13"
+                                            HorizontalTextAlignment="Center"
+                                            LineBreakMode="WordWrap"
+                                            Text="{Binding Nombre}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </ContentView>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+
+                <!-- Tarjeta del próximo turno. -->
+                <!-- Próximo turno (si existe) -->
+                <!-- ENLACE: IsVisible = TieneProximoTurno → la tarjeta se ve solo si hay turno. -->
+                <Border
+                    IsVisible="{Binding TieneProximoTurno}"
+                    Padding="0"
+                    Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: VerProximoTurnoCommand → va a "Mis turnos". -->
+                        <TapGestureRecognizer Command="{Binding VerProximoTurnoCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <VerticalStackLayout
+                            Padding="14,12"
+                            BackgroundColor="{StaticResource Primary}"
+                            Spacing="0"
+                            VerticalOptions="Fill"
+                            WidthRequest="72">
+                            <!--
+                                ENLACE CON RUTA DE PROPIEDADES: ProximoTurno.DiaSemanaCorto
+                                significa "entrá a la propiedad ProximoTurno (un TurnoDetalle) y leé DiaSemanaCorto".
+                                Se pueden encadenar con puntos, como en C#.
+                            -->
+                            <Label
+                                FontSize="12"
+                                HorizontalOptions="Center"
+                                Text="{Binding ProximoTurno.DiaSemanaCorto}"
+                                TextColor="{StaticResource OnPrimarySoft}" />
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="24"
+                                HorizontalOptions="Center"
+                                Text="{Binding ProximoTurno.DiaNumero}"
+                                TextColor="White" />
+                            <Label
+                                FontSize="12"
+                                HorizontalOptions="Center"
+                                Text="{Binding ProximoTurno.MesCorto}"
+                                TextColor="{StaticResource OnPrimarySoft}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Padding="14,12"
+                            Spacing="2"
+                            VerticalOptions="Center">
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                Text="PRÓXIMO TURNO"
+                                TextColor="{StaticResource Primary}" />
+                            <!-- ENLACE: ProximoTurno.Medico.NombreCompleto (tres niveles: turno → médico → nombre). -->
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="15"
+                                LineBreakMode="TailTruncation"
+                                Text="{Binding ProximoTurno.Medico.NombreCompleto}" />
+                            <Label Style="{StaticResource SecondaryLabel}" LineBreakMode="TailTruncation">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <!-- ENLACES en Span: hora del turno y especialidad del médico. -->
+                                        <Span Text="{Binding ProximoTurno.HoraTexto}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{Binding ProximoTurno.Medico.EspecialidadNombre}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </VerticalStackLayout>
+                        <Image
+                            Grid.Column="2"
+                            Margin="0,0,12,0"
+                            Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <!-- Tarjeta fija "Gestioná tus turnos". -->
+                <!-- Gestioná tus turnos -->
+                <Border
+                    BackgroundColor="{StaticResource PrimaryLight}"
+                    Stroke="{StaticResource PrimarySoft}"
+                    Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: GestionarTurnosCommand → va a "Mis turnos". -->
+                        <TapGestureRecognizer Command="{Binding GestionarTurnosCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Border BackgroundColor="White" Style="{StaticResource IconCircle}">
+                            <Image Source="ic_calendar.png" />
+                        </Border>
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="2"
+                            VerticalOptions="Center">
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="15"
+                                Text="Gestioná tus turnos"
+                                TextColor="{StaticResource PrimaryDark}" />
+                            <Label
+                                FontSize="12"
+                                Text="Revisá, reprogramá o cancelá tus turnos desde aquí."
+                                TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

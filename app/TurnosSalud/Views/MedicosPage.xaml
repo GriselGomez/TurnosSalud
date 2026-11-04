@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Médicos (de una especialidad o resultado de la búsqueda)
+    VIEWMODEL: MedicosViewModel.cs  ·  conexión: BindingContext en MedicosPage.xaml.cs
+    Recibe por navegación "especialidadId" o "busqueda" (ver ApplyQueryAttributes).
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.MedicosPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:models="clr-namespace:TurnosSalud.Models"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="{Binding Title}"
+    x:DataType="vm:MedicosViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Encabezado con el resumen de resultados. -->
+        <!-- Encabezado de resultados -->
+        <Grid
+            Padding="18,14"
+            BackgroundColor="{StaticResource Surface}"
+            ColumnDefinitions="Auto,*"
+            ColumnSpacing="14">
+            <Image
+                HeightRequest="26"
+                Source="ic_user.png"
+                VerticalOptions="Center"
+                WidthRequest="26" />
+            <VerticalStackLayout Grid.Column="1" Spacing="0">
+                <!--
+                    ENLACES: Encabezado ("Médicos disponibles" o "Resultados para ...")
+                    y ResultadosTexto ("3 resultados"), los arma el ViewModel.
+                -->
+                <Label Style="{StaticResource BodyBoldLabel}" Text="{Binding Encabezado}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding ResultadosTexto}" />
+            </VerticalStackLayout>
+        </Grid>
+        <BoxView Style="{StaticResource Divider}" VerticalOptions="End" />
+
+        <!-- Ruedita de carga mientras se piden los médicos a la API (IsBusy). -->
+        <ActivityIndicator
+            Grid.Row="1"
+            HorizontalOptions="Center"
+            IsRunning="{Binding IsBusy}"
+            IsVisible="{Binding IsBusy}"
+            VerticalOptions="Center" />
+
+        <!--
+            LISTA ENLAZADA: ItemsSource = Medicos (ObservableCollection).
+            SelectedItem = Seleccionado (doble vía) y SelectionChangedCommand = AbrirCommand:
+            al tocar un médico, AbrirAsync() navega a su agenda (MedicoDetalle) con su Id.
+        -->
+        <CollectionView
+            Grid.Row="1"
+            Margin="16,0"
+            ItemsSource="{Binding Medicos}"
+            SelectedItem="{Binding Seleccionado}"
+            SelectionChangedCommand="{Binding AbrirCommand}"
+            SelectionMode="Single">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.Header>
+                <BoxView HeightRequest="14" Color="Transparent" />
+            </CollectionView.Header>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="16" Color="Transparent" />
+            </CollectionView.Footer>
+            <!-- Mensaje cuando no hay médicos para mostrar. -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="20,40" Spacing="10">
+                    <Image
+                        HeightRequest="72"
+                        HorizontalOptions="Center"
+                        Source="ic_calendar_empty.png"
+                        WidthRequest="72" />
+                    <Label
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource BodyBoldLabel}"
+                        Text="No encontramos profesionales" />
+                    <Label
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource SecondaryLabel}"
+                        Text="Probá con otro nombre o especialidad." />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <!--
+                    PLANTILLA DE CADA MÉDICO. x:DataType="models:Medico": los {Binding}
+                    de acá adentro leen propiedades de cada Medico (Models/Medico.cs).
+                -->
+                <DataTemplate x:DataType="models:Medico">
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border Padding="14" Style="{StaticResource Card}">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                <!--
+                                    Control propio AvatarView (círculo con iniciales).
+                                    ENLACES: Color = AvatarColor, Initials = Iniciales ("JP" para Juan Pérez).
+                                    Iniciales es una propiedad calculada en Models/Medico.cs, no viene de la base.
+                                -->
+                                <controls:AvatarView
+                                    Color="{Binding AvatarColor}"
+                                    Initials="{Binding Iniciales}"
+                                    Size="58" />
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="2"
+                                    VerticalOptions="Center">
+                                    <!-- ENLACE: NombreCompleto (calculada: Título + Nombre + Apellido). -->
+                                    <Label
+                                        LineBreakMode="TailTruncation"
+                                        Style="{StaticResource BodyBoldLabel}"
+                                        Text="{Binding NombreCompleto}" />
+                                    <!-- ENLACE: nombre de la especialidad. -->
+                                    <Label Style="{StaticResource CaptionLabel}" Text="{Binding EspecialidadNombre}" />
+                                    <HorizontalStackLayout Margin="0,2,0,0" Spacing="4">
+                                        <Image
+                                            HeightRequest="14"
+                                            Source="ic_star.png"
+                                            VerticalOptions="Center"
+                                            WidthRequest="14" />
+                                        <!-- ENLACE: CalificacionCorta, por ejemplo "4.8 (120)". -->
+                                        <Label
+                                            Style="{StaticResource CaptionLabel}"
+                                            Text="{Binding CalificacionCorta}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                    <!-- ENLACE: Sede donde atiende (viene de la tabla SEDE a través de la API). -->
+                                    <Label
+                                        LineBreakMode="TailTruncation"
+                                        Style="{StaticResource CaptionLabel}"
+                                        Text="{Binding Sede}"
+                                        TextColor="{StaticResource TextMuted}" />
+                                </VerticalStackLayout>
+                                <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

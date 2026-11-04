@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Turno confirmado (comprobante)
+    VIEWMODEL: TurnoConfirmadoViewModel.cs  ·  conexión: BindingContext en TurnoConfirmadoPage.xaml.cs
+    Recibe "turnoId" y pide a la API el detalle del turno guardado (GetTurnoDetalleAsync).
+    Casi todo empieza con "Turno.": Turno es un TurnoDetalle (Models/TurnoDetalle.cs)
+    que junta el turno y su médico.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.TurnoConfirmadoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    x:DataType="vm:TurnoConfirmadoViewModel"
+    BackgroundColor="{StaticResource Surface}"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,48,20,28" Spacing="18">
+
+            <!-- Ícono de éxito (fijo). -->
+            <Image
+                HeightRequest="150"
+                HorizontalOptions="Center"
+                SemanticProperties.Description="Turno confirmado"
+                Source="ic_success.png"
+                WidthRequest="180" />
+
+            <VerticalStackLayout Spacing="6">
+                <!-- ENLACE: Titulo ("¡Turno confirmado!" o "¡Turno reprogramado!"). -->
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="26"
+                    HorizontalTextAlignment="Center"
+                    SemanticProperties.HeadingLevel="Level1"
+                    Text="{Binding Titulo}" />
+                <!-- ENLACE: Subtitulo (el texto cambia según sea turno nuevo o reprogramado). -->
+                <Label
+                    FontSize="15"
+                    HorizontalTextAlignment="Center"
+                    Text="{Binding Subtitulo}"
+                    TextColor="{StaticResource TextSecondary}" />
+            </VerticalStackLayout>
+
+            <Border Padding="16" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <!-- ENLACES: Turno.Medico.AvatarColor y Turno.Medico.Iniciales. -->
+                        <controls:AvatarView
+                            Color="{Binding Turno.Medico.AvatarColor}"
+                            Initials="{Binding Turno.Medico.Iniciales}"
+                            Size="52" />
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="2"
+                            VerticalOptions="Center">
+                            <!-- ENLACES: nombre y especialidad del médico del turno. -->
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="{Binding Turno.Medico.NombreCompleto}" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding Turno.Medico.EspecialidadNombre}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView Style="{StaticResource Divider}" />
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="12"
+                        RowDefinitions="Auto,Auto,Auto,Auto"
+                        RowSpacing="12">
+                        <!-- ENLACES: Turno.FechaTexto, Turno.HoraTexto y Turno.Medico.Sede. -->
+                        <Image HeightRequest="20" Source="ic_calendar.png" WidthRequest="20" />
+                        <Label Grid.Column="1" Text="{Binding Turno.FechaTexto}" VerticalOptions="Center" />
+
+                        <Image Grid.Row="1" HeightRequest="20" Source="ic_clock.png" WidthRequest="20" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Turno.HoraTexto}" VerticalOptions="Center" />
+
+                        <Image Grid.Row="2" HeightRequest="20" Source="ic_pin.png" WidthRequest="20" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding Turno.Medico.Sede}" VerticalOptions="Center" />
+
+                        <!-- ENLACE: Turno.Codigo, el código del turno para presentar en la sede. -->
+                        <Image Grid.Row="3" HeightRequest="20" Source="ic_hash.png" WidthRequest="20" />
+                        <Label Grid.Row="3" Grid.Column="1" VerticalOptions="Center">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Código de turno: " TextColor="{StaticResource TextSecondary}" />
+                                    <Span FontAttributes="Bold" Text="{Binding Turno.Codigo}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Margin="0,6,0,0" Spacing="12">
+                <!--
+                    ENLACE DE COMANDO: VerMisTurnosCommand → abre Mis turnos desde cero
+                    (ReiniciarEnAsync limpia la pila para que "atrás" no vuelva a esta pantalla).
+                -->
+                <Button Command="{Binding VerMisTurnosCommand}" Text="Ver mis turnos" />
+                <!-- ENLACE DE COMANDO: VolverAlInicioCommand → vuelve a Inicio. -->
+                <Button
+                    Command="{Binding VolverAlInicioCommand}"
+                    Style="{StaticResource OutlineButton}"
+                    Text="Volver al inicio" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Agenda del médico (elegir día y horario)
+    VIEWMODEL: MedicoDetalleViewModel.cs  ·  conexión: BindingContext en MedicoDetallePage.xaml.cs
+    Es la pantalla con más enlace de datos: dos listas (días y horarios) y
+    DataTriggers que cambian colores según el estado de cada ítem.
+
+    DATATRIGGER (disparador por dato): "cuando la propiedad X valga Y, cambiá
+    este color". Reemplaza el if que antes escribíamos en el code-behind:
+        if (seleccionado) borde.BackgroundColor = azul;
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.MedicoDetallePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="{Binding Title}"
+    x:DataType="vm:MedicoDetalleViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView>
+            <VerticalStackLayout Padding="0,0,0,16" Spacing="0">
+
+                <!-- Aviso naranja de reprogramación. -->
+                <!-- Aviso de reprogramación -->
+                <!--
+                    ENLACE: IsVisible = EsReprogramacion. Solo aparece si se llegó desde
+                    "Reprogramar" en Mis turnos (el ViewModel recibe reprogramaTurnoId).
+                -->
+                <Border
+                    Margin="16,14,16,0"
+                    BackgroundColor="{StaticResource WarningLight}"
+                    IsVisible="{Binding EsReprogramacion}"
+                    Stroke="#F8E0B0"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12,10">
+                    <Label
+                        FontSize="13"
+                        Text="Estás reprogramando un turno: elegí el nuevo día y horario."
+                        TextColor="{StaticResource Warning}" />
+                </Border>
+
+                <!--
+                    Perfil del profesional. Todos los enlaces empiezan con "Medico."
+                    porque Medico es una propiedad del ViewModel que contiene un objeto Medico.
+                -->
+                <!-- Perfil del profesional -->
+                <VerticalStackLayout
+                    Padding="18,18,18,16"
+                    BackgroundColor="{StaticResource Surface}"
+                    Spacing="14">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                        <!-- ENLACES: Medico.AvatarColor y Medico.Iniciales. -->
+                        <controls:AvatarView
+                            Color="{Binding Medico.AvatarColor}"
+                            Initials="{Binding Medico.Iniciales}"
+                            Size="76" />
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="3"
+                            VerticalOptions="Center">
+                            <!-- ENLACE: Medico.NombreCompleto. -->
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="19"
+                                SemanticProperties.HeadingLevel="Level1"
+                                Text="{Binding Medico.NombreCompleto}" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding Medico.EspecialidadNombre}" />
+                            <HorizontalStackLayout Spacing="4">
+                                <Image
+                                    HeightRequest="15"
+                                    Source="ic_star.png"
+                                    VerticalOptions="Center"
+                                    WidthRequest="15" />
+                                <!-- ENLACE: Medico.CalificacionLarga, por ejemplo "4.8 (120 reseñas)". -->
+                                <Label
+                                    Style="{StaticResource SecondaryLabel}"
+                                    Text="{Binding Medico.CalificacionLarga}"
+                                    VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView Style="{StaticResource Divider}" />
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="12"
+                        RowDefinitions="Auto,Auto,Auto"
+                        RowSpacing="10">
+                        <Image
+                            HeightRequest="18"
+                            Source="ic_badge.png"
+                            WidthRequest="18" />
+                        <!-- ENLACE: Medico.Matricula. -->
+                        <Label
+                            Grid.Column="1"
+                            Style="{StaticResource SecondaryLabel}"
+                            Text="{Binding Medico.Matricula}"
+                            VerticalOptions="Center" />
+                        <Image
+                            Grid.Row="1"
+                            HeightRequest="18"
+                            Source="ic_pin.png"
+                            WidthRequest="18" />
+                        <!-- ENLACE: Medico.Sede. -->
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Style="{StaticResource SecondaryLabel}"
+                            Text="{Binding Medico.Sede}"
+                            VerticalOptions="Center" />
+                        <Image
+                            Grid.Row="2"
+                            HeightRequest="18"
+                            Source="ic_clock.png"
+                            WidthRequest="18" />
+                        <!-- ENLACE: Medico.HorarioTexto (días de atención y franja horaria, armado en Models/Medico.cs). -->
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Style="{StaticResource SecondaryLabel}"
+                            Text="{Binding Medico.HorarioTexto}"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Agenda. -->
+                <!-- Agenda -->
+                <VerticalStackLayout Padding="16,18,16,0" Spacing="14">
+                    <Label
+                        SemanticProperties.HeadingLevel="Level2"
+                        Style="{StaticResource SectionLabel}"
+                        Text="Horarios disponibles" />
+
+                    <!--
+                        LISTA DE DÍAS (horizontal).
+                        ENLACE: ItemsSource = Dias (ObservableCollection de DiaItem).
+                        SelectionMode="None": la selección la maneja cada DiaItem con su IsSelected.
+                    -->
+                    <!-- Días -->
+                    <CollectionView
+                        Margin="-2,0"
+                        HeightRequest="86"
+                        HorizontalScrollBarVisibility="Never"
+                        ItemsSource="{Binding Dias}"
+                        SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout ItemSpacing="8" Orientation="Horizontal" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.EmptyView>
+                            <Label
+                                Style="{StaticResource SecondaryLabel}"
+                                Text="El profesional no tiene días de atención próximos."
+                                VerticalOptions="Center" />
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <!--
+                                PLANTILLA DE CADA DÍA. x:DataType="vm:DiaItem" (ViewModels/Items.cs).
+                                Cada día es un pequeño ViewModel propio con su comando y su IsSelected.
+                            -->
+                            <DataTemplate x:DataType="vm:DiaItem">
+                                <Border
+
+                                    Padding="0,8"
+                                    BackgroundColor="{StaticResource Surface}"
+                                    SemanticProperties.Description="{Binding Descripcion}"
+                                    Stroke="{StaticResource BorderColor}"
+                                    StrokeShape="RoundRectangle 12"
+                                    WidthRequest="62">
+                                    <Border.GestureRecognizers>
+                                        <!--
+                                            ENLACE DE COMANDO: SeleccionarCommand de ESE día → el ViewModel marca
+                                            ese día, desmarca los demás y pide los horarios a la API.
+                                        -->
+                                        <TapGestureRecognizer Command="{Binding SeleccionarCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Triggers>
+                                        <!--
+                                            DATATRIGGER: cuando IsSelected = True, el recuadro se pinta azul.
+                                            Como IsSelected tiene [ObservableProperty], al cambiar se repinta solo.
+                                        -->
+                                        <DataTrigger
+                                            Binding="{Binding IsSelected}"
+                                            TargetType="Border"
+                                            Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout HorizontalOptions="Center" Spacing="0" VerticalOptions="Center">
+                                        <!-- ENLACE: DiaSemana ("Lun"). El DataTrigger lo pone blanco si está seleccionado. -->
+                                        <Label
+                                            FontSize="12"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding DiaSemana}"
+                                            TextColor="{StaticResource TextSecondary}">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="White" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <!-- ENLACE: Numero (día del mes). -->
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="20"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Numero}">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="White" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <!-- ENLACE: Mes ("Nov"). -->
+                                        <Label
+                                            FontSize="12"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Mes}"
+                                            TextColor="{StaticResource TextSecondary}">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="White" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- ENLACE: DiaSeleccionado.Descripcion → fecha del día elegido ("Lunes 17 de Noviembre"). -->
+                    <Label
+                        Style="{StaticResource SecondaryLabel}"
+                        Text="{Binding DiaSeleccionado.Descripcion}" />
+
+                    <!--
+                        LISTA DE HORARIOS (en grilla de 3 columnas).
+                        ENLACE: BindableLayout.ItemsSource = Horarios (ObservableCollection de HorarioItem).
+                        Los horarios los calcula la API (GET api/Turnos/Horarios) según los turnos ya guardados.
+                    -->
+                    <!-- Horarios del día -->
+                    <FlexLayout
+                        Margin="-5,0"
+                        BindableLayout.ItemsSource="{Binding Horarios}"
+                        Direction="Row"
+                        Wrap="Wrap">
+                        <BindableLayout.ItemTemplate>
+                            <!-- PLANTILLA DE CADA HORARIO. x:DataType="vm:HorarioItem" (ViewModels/Items.cs). -->
+                            <DataTemplate x:DataType="vm:HorarioItem">
+                                <ContentView Padding="5" FlexLayout.Basis="33%">
+                                    <Border
+                                        BackgroundColor="{StaticResource Surface}"
+                                        HeightRequest="44"
+                                        SemanticProperties.Description="{Binding Descripcion}"
+                                        Stroke="{StaticResource BorderColor}"
+                                        StrokeShape="RoundRectangle 10">
+                                        <Border.GestureRecognizers>
+                                            <!--
+                                                ENLACE DE COMANDO: SeleccionarCommand de ESE horario. Si está ocupado,
+                                                el ViewModel muestra un aviso; si está libre, lo marca como elegido.
+                                            -->
+                                            <TapGestureRecognizer Command="{Binding SeleccionarCommand}" />
+                                        </Border.GestureRecognizers>
+                                        <!--
+                                            DOS DATATRIGGERS:
+                                              Disponible = False → fondo gris (ocupado).
+                                              IsSelected = True  → fondo azul (elegido).
+                                            Libre y sin elegir queda blanco (color por defecto).
+                                        -->
+                                        <Border.Triggers>
+                                            <DataTrigger Binding="{Binding Disponible}" TargetType="Border" Value="False">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource SurfaceMuted}" />
+                                                <Setter Property="Stroke" Value="{StaticResource SurfaceMuted}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <!-- ENLACE: Hora ("09:30"). Si está ocupado se tacha (Strikethrough) por DataTrigger. -->
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="14"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Hora}"
+                                            VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding Disponible}" TargetType="Label" Value="False">
+                                                    <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+                                                    <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                    <Setter Property="FontAttributes" Value="None" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="White" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </ContentView>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <!-- Aviso cuando todos los horarios del día están ocupados. -->
+                    <!-- Sin horarios -->
+                    <!-- ENLACE: IsVisible = SinHorarios. -->
+                    <Border IsVisible="{Binding SinHorarios}" Style="{StaticResource InfoBox}">
+                        <Label
+                            FontSize="13"
+                            Text="No quedan horarios libres para este día. Probá con otra fecha."
+                            TextColor="{StaticResource PrimaryDark}" />
+                    </Border>
+
+                    <!-- Referencias de colores (fijas, sin enlace). -->
+                    <!-- Referencias -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="16">
+                        <HorizontalStackLayout Spacing="6">
+                            <Border
+                                BackgroundColor="White"
+                                HeightRequest="12"
+                                Stroke="{StaticResource BorderColor}"
+                                StrokeShape="RoundRectangle 3"
+                                VerticalOptions="Center"
+                                WidthRequest="12" />
+                            <Label Style="{StaticResource CaptionLabel}" Text="Disponible" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="6">
+                            <Border
+                                BackgroundColor="{StaticResource Primary}"
+                                HeightRequest="12"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 3"
+                                VerticalOptions="Center"
+                                WidthRequest="12" />
+                            <Label Style="{StaticResource CaptionLabel}" Text="Seleccionado" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="6">
+                            <Border
+                                BackgroundColor="{StaticResource SurfaceMuted}"
+                                HeightRequest="12"
+                                Stroke="#CBD5E1"
+                                StrokeShape="RoundRectangle 3"
+                                VerticalOptions="Center"
+                                WidthRequest="12" />
+                            <Label Style="{StaticResource CaptionLabel}" Text="Ocupado" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Barra inferior fija con el botón para continuar. -->
+        <!-- Barra inferior fija -->
+        <Grid
+            Grid.Row="1"
+            Padding="16,12,16,16"
+            BackgroundColor="{StaticResource Surface}">
+            <BoxView Style="{StaticResource Divider}" Margin="-16,-12,-16,0" VerticalOptions="Start" />
+            <!--
+                ENLACE DE COMANDO: ContinuarCommand → va a Confirmar turno con médico y horario.
+                ENLACE: IsEnabled = PuedeContinuar (true solo si hay un horario elegido).
+                ENLACE: Text = TextoBoton ("Elegí un horario" o "Seleccionar turno · Lun 17 09:30").
+                PuedeContinuar y TextoBoton son propiedades calculadas: el ViewModel avisa
+                que cambiaron con [NotifyPropertyChangedFor] cada vez que cambia HorarioSeleccionado.
+            -->
+            <Button
+                Command="{Binding ContinuarCommand}"
+                IsEnabled="{Binding PuedeContinuar}"
+                Text="{Binding TextoBoton}" />
+        </Grid>
+
+        <!-- Ruedita de carga encima de toda la pantalla mientras IsBusy es true. -->
+        <ActivityIndicator
+            Grid.RowSpan="2"
+            HorizontalOptions="Center"
+            IsRunning="{Binding IsBusy}"
+            IsVisible="{Binding IsBusy}"
+            VerticalOptions="Center" />
+    </Grid>
+</ContentPage>

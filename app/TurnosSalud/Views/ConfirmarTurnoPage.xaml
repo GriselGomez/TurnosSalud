@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Confirmar turno (resumen antes de guardar)
+    VIEWMODEL: ConfirmarTurnoViewModel.cs  ·  conexión: BindingContext en ConfirmarTurnoPage.xaml.cs
+    Recibe por navegación: medicoId, inicio (fecha y hora) y, si es una
+    reprogramación, reprogramaTurnoId. Todo lo que se ve son enlaces de SOLO
+    LECTURA: el ViewModel prepara los textos ya armados (FechaTexto, HoraTexto...)
+    y la vista solo los muestra. Así la vista no hace cálculos.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.ConfirmarTurnoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="{Binding Title}"
+    x:DataType="vm:ConfirmarTurnoViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,18,16,28" Spacing="16">
+
+            <!-- Resumen del turno. -->
+            <!-- Resumen del turno -->
+            <Border Padding="16" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="16">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <!-- ENLACES: Medico.AvatarColor y Medico.Iniciales (círculo con iniciales). -->
+                        <controls:AvatarView
+                            Color="{Binding Medico.AvatarColor}"
+                            Initials="{Binding Medico.Iniciales}"
+                            Size="64" />
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="2"
+                            VerticalOptions="Center">
+                            <!-- ENLACES: Medico.NombreCompleto, Medico.EspecialidadNombre y Medico.Matricula. -->
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="17"
+                                Text="{Binding Medico.NombreCompleto}" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding Medico.EspecialidadNombre}" />
+                            <Label Style="{StaticResource CaptionLabel}" Text="{Binding Medico.Matricula}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView Style="{StaticResource Divider}" />
+
+                    <!-- ENLACE: FechaTexto, por ejemplo "Lun, 17 de Noviembre de 2026" (Helpers/Formatos.cs). -->
+                    <!-- Fecha -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Image
+                            HeightRequest="24"
+                            Source="ic_calendar.png"
+                            VerticalOptions="Start"
+                            WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Fecha" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding FechaTexto}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- ENLACE: HoraTexto, por ejemplo "09:30 hs". -->
+                    <!-- Hora -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Image
+                            HeightRequest="24"
+                            Source="ic_clock.png"
+                            VerticalOptions="Start"
+                            WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Hora" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding HoraTexto}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- ENLACE: Medico.Sede. -->
+                    <!-- Sede -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Image
+                            HeightRequest="24"
+                            Source="ic_pin.png"
+                            VerticalOptions="Start"
+                            WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Sede" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding Medico.Sede}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView Style="{StaticResource Divider}" />
+
+                    <!-- ENLACE: PacienteTexto ("Nombre Apellido · DNI 23002826"), sale del usuario de la sesión. -->
+                    <!-- Paciente -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Image
+                            HeightRequest="24"
+                            Source="ic_user.png"
+                            VerticalOptions="Start"
+                            WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Paciente" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding PacienteTexto}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- ENLACE: ObraSocialTexto (obra social y número de afiliado si lo tiene). -->
+                    <!-- Cobertura -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Image
+                            HeightRequest="24"
+                            Source="ic_card.png"
+                            VerticalOptions="Start"
+                            WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Cobertura" />
+                            <Label Style="{StaticResource SecondaryLabel}" Text="{Binding ObraSocialTexto}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Recomendación fija (sin enlace). -->
+            <!-- Recomendación -->
+            <Border Style="{StaticResource InfoBox}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Image
+                        HeightRequest="22"
+                        Source="ic_info.png"
+                        VerticalOptions="Start"
+                        WidthRequest="22" />
+                    <Label
+                        Grid.Column="1"
+                        FontSize="13"
+                        LineHeight="1.2"
+                        Text="Por favor, llegá 10 minutos antes de tu turno con tu DNI y la credencial de tu obra social."
+                        TextColor="{StaticResource PrimaryDark}" />
+                </Grid>
+            </Border>
+
+            <!-- ENLACE: IsVisible = EsReprogramacion (aviso naranja solo al reprogramar). -->
+            <Border
+                Padding="12,10"
+                BackgroundColor="{StaticResource WarningLight}"
+                IsVisible="{Binding EsReprogramacion}"
+                Stroke="#F8E0B0"
+                StrokeShape="RoundRectangle 10">
+                <Label
+                    FontSize="13"
+                    Text="Al confirmar, tu turno anterior se libera automáticamente."
+                    TextColor="{StaticResource Warning}" />
+            </Border>
+
+            <VerticalStackLayout Margin="0,6,0,0" Spacing="12">
+                <Grid>
+                    <!--
+                        ENLACE DE COMANDO: ConfirmarCommand → ConfirmarAsync() llama a la API
+                        (POST api/Turnos/Reservar). La API vuelve a revisar TODAS las reglas
+                        (doble reserva, máximo 5 turnos, etc.) y guarda en SQL Server.
+                        ENLACE: Text = TextoBoton ("Confirmar turno" o "Confirmar nuevo horario").
+                    -->
+                    <Button Command="{Binding ConfirmarCommand}" Text="{Binding TextoBoton}" />
+                    <!-- Ruedita dentro del botón mientras se guarda (IsBusy). -->
+                    <ActivityIndicator
+                        Margin="0,0,16,0"
+                        HeightRequest="26"
+                        HorizontalOptions="End"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Color="White" />
+                </Grid>
+                <!-- ENLACE DE COMANDO: CancelarCommand → vuelve a la agenda sin guardar nada. -->
+                <Button
+                    Command="{Binding CancelarCommand}"
+                    Style="{StaticResource OutlineButton}"
+                    Text="Cancelar" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

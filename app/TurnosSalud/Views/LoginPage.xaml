@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Iniciar sesión (LoginPage)
+    VIEWMODEL: LoginViewModel.cs  ·  conexión: BindingContext en LoginPage.xaml.cs
+    =====================================================================
+    Ejemplo completo del enlace de datos (para explicarlo al profesor):
+      1. El usuario escribe su DNI en la caja de texto.
+      2. Text="{Binding Dni}" es de DOBLE VÍA (TwoWay): lo escrito se copia
+         solo a la propiedad Dni del ViewModel. No hace falta leer txtDni.Text.
+      3. Al tocar "Ingresar", Command="{Binding IngresarCommand}" ejecuta
+         IngresarAsync() en el ViewModel, que valida y llama a la API.
+      4. Si la contraseña está mal, el ViewModel hace PasswordError = "..."
+         y como Error="{Binding PasswordError}" está enlazado, el texto rojo
+         aparece debajo de la caja SOLO. El ViewModel no conoce la caja.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="Iniciar sesión"
+    x:DataType="vm:LoginViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="22,26,22,30" Spacing="18">
+
+            <!-- Títulos fijos de la pantalla (sin enlace). -->
+            <VerticalStackLayout Spacing="6">
+                <Label
+                    SemanticProperties.HeadingLevel="Level1"
+                    Style="{StaticResource TitleLabel}"
+                    Text="¡Hola de nuevo!" />
+                <Label Style="{StaticResource SecondaryLabel}" Text="Ingresá con tu DNI y tu contraseña." />
+            </VerticalStackLayout>
+
+            <!--
+                controls:FormEntry es un control propio (carpeta Controls/FormEntry.cs):
+                caja de texto + título + ícono + mensaje de error, para no repetir código.
+                ENLACE DOBLE VÍA: Text = Dni (lo que escribe el usuario llega al ViewModel).
+                ENLACE DE IDA: Error = DniError (si el ViewModel pone un mensaje, se muestra en rojo;
+                si lo pone en null, el error desaparece).
+            -->
+            <controls:FormEntry
+                Title="DNI"
+                Error="{Binding DniError}"
+                Icon="ic_id.png"
+                Keyboard="Numeric"
+                MaxLength="8"
+                Placeholder="Sin puntos. Ej: 38123456"
+                Text="{Binding Dni}" />
+
+            <VerticalStackLayout Spacing="8">
+                <!--
+                    Igual que el DNI pero con la contraseña:
+                    Text = Password (doble vía), Error = PasswordError.
+                    ReturnCommand = IngresarCommand: apretar "Listo" en el teclado del celular
+                    hace lo mismo que tocar el botón Ingresar.
+                -->
+                <controls:FormEntry
+                    Title="Contraseña"
+                    Error="{Binding PasswordError}"
+                    Icon="ic_lock.png"
+                    IsPassword="True"
+                    MaxLength="64"
+                    Placeholder="Tu contraseña"
+                    ReturnCommand="{Binding IngresarCommand}"
+                    ReturnType="Done"
+                    Text="{Binding Password}" />
+                <Label
+                    HorizontalOptions="End"
+                    Style="{StaticResource LinkLabel}"
+                    FontSize="13"
+                    Text="¿Olvidaste tu contraseña?">
+                    <!-- ENLACE DE COMANDO: OlvideMiPasswordCommand → muestra un aviso (todavía sin recuperación por correo). -->
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OlvideMiPasswordCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </VerticalStackLayout>
+
+            <!-- Error general (ej: bloqueo por intentos) -->
+            <!--
+                ENLACE CON CONVERTIDOR: IsVisible = ErrorGeneral pasado por el convertidor HasText.
+                Un convertidor transforma el valor: HasText devuelve true si hay texto.
+                Resultado: el recuadro rojo solo se ve cuando ErrorGeneral tiene un mensaje
+                (por ejemplo "Demasiados intentos fallidos"). Ver Converters/Converters.cs.
+            -->
+            <Border
+                Padding="12,10"
+                BackgroundColor="{StaticResource DangerLight}"
+                IsVisible="{Binding ErrorGeneral, Converter={StaticResource HasText}}"
+                Stroke="#F5C2C2"
+                StrokeShape="RoundRectangle 10">
+                <!-- ENLACE: muestra el texto de ErrorGeneral. -->
+                <Label
+                    FontSize="13"
+                    Text="{Binding ErrorGeneral}"
+                    TextColor="{StaticResource Danger}" />
+            </Border>
+
+            <Grid>
+                <!--
+                    ENLACE DE COMANDO: IngresarCommand → IngresarAsync() en LoginViewModel
+                    (valida DNI y contraseña y llama a la API: POST api/Cuentas/Login).
+                    IsEnabled = IsNotBusy para que no se pueda tocar dos veces mientras espera.
+                -->
+                <Button
+                    Command="{Binding IngresarCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    Text="Ingresar" />
+                <!-- Ruedita dentro del botón: visible solo mientras IsBusy es true. -->
+                <ActivityIndicator
+                    HeightRequest="26"
+                    HorizontalOptions="End"
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    Margin="0,0,16,0"
+                    Color="White" />
+            </Grid>
+
+            <!-- Separador "o" (fijo). -->
+            <!-- Separador "o" -->
+            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
+                <BoxView Style="{StaticResource Divider}" VerticalOptions="Center" />
+                <Label
+                    Grid.Column="1"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="o"
+                    VerticalOptions="Center" />
+                <BoxView
+                    Grid.Column="2"
+                    Style="{StaticResource Divider}"
+                    VerticalOptions="Center" />
+            </Grid>
+
+            <!-- ENLACE DE COMANDO: ContinuarConGoogleCommand → ingreso con la cuenta de Google. -->
+            <Button
+                Command="{Binding ContinuarConGoogleCommand}"
+                IsEnabled="{Binding IsNotBusy}"
+                SemanticProperties.Hint="Ingresá con tu cuenta de Gmail"
+                Style="{StaticResource GoogleButton}"
+                Text="Continuar con Google" />
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                <Label Style="{StaticResource SecondaryLabel}" FontSize="14" Text="¿Primera vez?" VerticalOptions="Center" />
+                <Label Style="{StaticResource LinkLabel}" Text="Creá tu cuenta" VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: IrARegistroCommand → va a Registro llevando el DNI ya escrito. -->
+                        <TapGestureRecognizer Command="{Binding IrARegistroCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+            <!-- Ayuda para la demostración -->
+            <!-- Recuadro de ayuda con la cuenta de demostración. -->
+            <Border Margin="0,8,0,0" Style="{StaticResource InfoBox}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Image
+                        HeightRequest="22"
+                        Source="ic_info.png"
+                        VerticalOptions="Start"
+                        WidthRequest="22" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label FontAttributes="Bold" FontSize="13" Text="Cuenta de demostración" TextColor="{StaticResource PrimaryDark}" />
+                        <Label FontSize="13" TextColor="{StaticResource PrimaryDark}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <!--
+                                        Un Span es un pedazo de texto dentro de un Label. También se puede enlazar:
+                                        DniDemo y PasswordDemo son propiedades de solo lectura del ViewModel.
+                                    -->
+                                    <Span Text="DNI " />
+                                    <Span FontAttributes="Bold" Text="{Binding DniDemo}" />
+                                    <Span Text="  ·  " />
+                                    <Span Text="Clave " />
+                                    <Span FontAttributes="Bold" Text="{Binding PasswordDemo}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Style="{StaticResource LinkLabel}" FontSize="13" Text="Completar automáticamente">
+                            <Label.GestureRecognizers>
+                                <!--
+                                    ENLACE DE COMANDO: UsarCuentaDemoCommand → el ViewModel asigna Dni y Password,
+                                    y como el enlace es de doble vía, las cajas de texto se completan solas.
+                                -->
+                                <TapGestureRecognizer Command="{Binding UsarCuentaDemoCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Datos personales (editar perfil y contraseña)
+    VIEWMODEL: DatosPersonalesViewModel.cs  ·  conexión: BindingContext en DatosPersonalesPage.xaml.cs
+    Patrón repetido en cada campo: Text = Dato (doble vía) + Error = DatoError.
+    El ViewModel valida con Helpers/Validador.cs y, si hay error, pone el mensaje
+    en DatoError; la vista lo muestra en rojo sin escribir código en el .xaml.cs.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.DatosPersonalesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="{Binding Title}"
+    x:DataType="vm:DatosPersonalesViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,20,20,32" Spacing="16">
+
+            <Label Style="{StaticResource SectionLabel}" Text="Tus datos" />
+
+            <!-- ENLACES: Text = Nombre (doble vía), Error = NombreError. -->
+            <controls:FormEntry
+                Title="Nombre/s"
+                Error="{Binding NombreError}"
+                Icon="ic_person.png"
+                MaxLength="60"
+                Text="{Binding Nombre}" />
+
+            <!-- ENLACES: Text = Apellido, Error = ApellidoError. -->
+            <controls:FormEntry
+                Title="Apellido/s"
+                Error="{Binding ApellidoError}"
+                Icon="ic_person.png"
+                MaxLength="60"
+                Text="{Binding Apellido}" />
+
+            <!-- ENLACE: Text = Dni, solo lectura (IsReadOnly): el DNI es el usuario y no se cambia. -->
+            <controls:FormEntry
+                Title="DNI · tu usuario (no se puede modificar)"
+                Icon="ic_id.png"
+                IsReadOnly="True"
+                Text="{Binding Dni}" />
+
+            <!-- ENLACES: Text = Email, Error = EmailError. -->
+            <controls:FormEntry
+                Title="Correo electrónico (para avisos de turnos)"
+                Error="{Binding EmailError}"
+                Icon="ic_mail.png"
+                Keyboard="Email"
+                MaxLength="120"
+                Text="{Binding Email}" />
+
+            <!-- ENLACES: Text = Telefono, Error = TelefonoError. -->
+            <controls:FormEntry
+                Title="Celular"
+                Error="{Binding TelefonoError}"
+                Icon="ic_phone.png"
+                Keyboard="Telephone"
+                MaxLength="10"
+                Placeholder="Ej: 3704123456"
+                Text="{Binding Telefono}" />
+
+            <!-- Obra social: no es una caja de texto sino una lista desplegable (Picker). -->
+            <VerticalStackLayout Spacing="6">
+                <Label Style="{StaticResource FieldLabel}" Text="Obra social" />
+                <Border Style="{StaticResource InputBorder}">
+                    <Border.Triggers>
+                        <!-- DATATRIGGER con convertidor: si ObraSocialError tiene texto, el borde se pone rojo. -->
+                        <DataTrigger
+                            Binding="{Binding ObraSocialError, Converter={StaticResource HasText}}"
+                            TargetType="Border"
+                            Value="True">
+                            <Setter Property="Stroke" Value="{StaticResource Danger}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Image
+                            HeightRequest="20"
+                            Source="ic_health.png"
+                            VerticalOptions="Center"
+                            WidthRequest="20" />
+                        <!--
+                            ENLACE: ItemsSource = ObrasSocialesDisponibles (la lista de opciones).
+                            ENLACE DOBLE VÍA: SelectedItem = ObraSocial (la opción elegida llega al ViewModel).
+                        -->
+                        <Picker
+                            Grid.Column="1"
+                            Title="Seleccioná tu obra social"
+                            ItemsSource="{Binding ObrasSocialesDisponibles}"
+                            SelectedItem="{Binding ObraSocial}" />
+                    </Grid>
+                </Border>
+                <!-- Mensaje de error de la obra social (visible solo si hay texto, por HasText). -->
+                <Label
+                    IsVisible="{Binding ObraSocialError, Converter={StaticResource HasText}}"
+                    Style="{StaticResource ErrorLabel}"
+                    Text="{Binding ObraSocialError}" />
+            </VerticalStackLayout>
+
+            <!-- ENLACES: Text = NumeroAfiliado, Error = NumeroAfiliadoError. -->
+            <controls:FormEntry
+                Title="N° de afiliado (opcional)"
+                Error="{Binding NumeroAfiliadoError}"
+                Icon="ic_number.png"
+                MaxLength="30"
+                Text="{Binding NumeroAfiliado}" />
+
+            <!-- ENLACE DE COMANDO: GuardarCommand → valida todo y guarda (PUT api/Cuentas/Editar). -->
+            <Button Command="{Binding GuardarCommand}" Text="Guardar cambios" />
+
+            <BoxView Margin="0,10" Style="{StaticResource Divider}" />
+
+            <!-- ENLACE: TituloPassword cambia si la cuenta es de Google (crear) o normal (cambiar). -->
+            <Label Style="{StaticResource SectionLabel}" Text="{Binding TituloPassword}" />
+
+            <!-- ENLACE: IsVisible = EsCuentaGoogle (explicación solo para cuentas de Google). -->
+            <Label
+                IsVisible="{Binding EsCuentaGoogle}"
+                Style="{StaticResource SecondaryLabel}"
+                Text="Ingresás con Google. Si querés, creá una contraseña para poder entrar también con tu DNI." />
+
+            <!--
+                ENLACE: IsVisible = PideActual. Una cuenta de Google no tiene contraseña anterior,
+                así que este campo se oculta. PideActual es lo contrario de EsCuentaGoogle.
+            -->
+            <controls:FormEntry
+                Title="Contraseña actual"
+                IsVisible="{Binding PideActual}"
+                Error="{Binding PasswordActualError}"
+                Icon="ic_lock.png"
+                IsPassword="True"
+                MaxLength="64"
+                Text="{Binding PasswordActual}" />
+
+            <!-- ENLACES: Text = PasswordNueva, Error = PasswordNuevaError. -->
+            <controls:FormEntry
+                Title="Nueva contraseña"
+                Error="{Binding PasswordNuevaError}"
+                Icon="ic_lock.png"
+                IsPassword="True"
+                MaxLength="64"
+                Placeholder="Mínimo 8 caracteres, letras y números"
+                Text="{Binding PasswordNueva}" />
+
+            <!-- ENLACES: Text = PasswordConfirmacion, Error = PasswordConfirmacionError. -->
+            <controls:FormEntry
+                Title="Repetir nueva contraseña"
+                Error="{Binding PasswordConfirmacionError}"
+                Icon="ic_lock.png"
+                IsPassword="True"
+                MaxLength="64"
+                ReturnType="Done"
+                Text="{Binding PasswordConfirmacion}" />
+
+            <!-- ENLACE DE COMANDO: CambiarPasswordCommand → PUT api/Cuentas/CambiarPassword. -->
+            <Button
+                Command="{Binding CambiarPasswordCommand}"
+                Style="{StaticResource OutlineButton}"
+                Text="Actualizar contraseña" />
+
+            <!-- Ruedita mientras se guarda (IsBusy). -->
+            <ActivityIndicator
+                HorizontalOptions="Center"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

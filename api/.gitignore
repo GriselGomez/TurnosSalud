@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+# La cadena de conexión del hosting (con contraseña) no se sube:
+appsettings.Production.json

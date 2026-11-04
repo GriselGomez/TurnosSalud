@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Especialidades (lista completa con filtro)
+    VIEWMODEL: EspecialidadesViewModel.cs  ·  conexión: BindingContext en EspecialidadesPage.xaml.cs
+    Se llega desde "Otras especialidades" (Inicio) o "Sacar un turno" (Mis turnos).
+    Title="{Binding Title}": hasta el título de la barra de arriba está enlazado.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.EspecialidadesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:TurnosSalud.Models"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="{Binding Title}"
+    x:DataType="vm:EspecialidadesViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <Grid Padding="16,14,16,0" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <!-- Filtro: el usuario escribe y la lista se achica mientras escribe. -->
+        <!-- Filtro -->
+        <Border
+            Padding="14,2"
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource BorderColor}"
+            StrokeShape="RoundRectangle 12">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <Image
+                    HeightRequest="20"
+                    Source="ic_search.png"
+                    WidthRequest="20" />
+                <!--
+                    ENLACE DOBLE VÍA: Text = Filtro. Cada letra llega al ViewModel, y ahí
+                    OnFiltroChanged() (método automático de [ObservableProperty]) vuelve a filtrar.
+                    No hay botón "buscar": el enlace de datos lo hace en vivo.
+                -->
+                <Entry
+                    Grid.Column="1"
+                    IsSpellCheckEnabled="False"
+                    Placeholder="Filtrar especialidades..."
+                    ReturnType="Done"
+                    Text="{Binding Filtro}" />
+            </Grid>
+        </Border>
+
+        <!--
+            CollectionView = lista con desplazamiento (como un ListBox/DataGridView).
+            ENLACE: ItemsSource = Especialidades (ObservableCollection del ViewModel).
+              Cuando el ViewModel hace Clear() y Add(), la lista se redibuja sola.
+            ENLACE DOBLE VÍA: SelectedItem = Seleccionada (el ítem tocado llega al ViewModel).
+            ENLACE DE COMANDO: SelectionChangedCommand = AbrirCommand → AbrirAsync()
+              abre los médicos de la especialidad elegida.
+        -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Especialidades}"
+            SelectedItem="{Binding Seleccionada}"
+            SelectionChangedCommand="{Binding AbrirCommand}"
+            SelectionMode="Single">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
+            </CollectionView.ItemsLayout>
+            <!-- EmptyView: lo que se muestra si la lista queda vacía (filtro sin resultados). -->
+            <CollectionView.EmptyView>
+                <Label
+                    Margin="0,30"
+                    HorizontalOptions="Center"
+                    Style="{StaticResource SecondaryLabel}"
+                    Text="No encontramos especialidades con ese nombre." />
+            </CollectionView.EmptyView>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="16" Color="Transparent" />
+            </CollectionView.Footer>
+            <CollectionView.ItemTemplate>
+                <!--
+                    PLANTILLA DE CADA FILA. x:DataType="models:Especialidad": acá los {Binding}
+                    leen cada objeto Especialidad (Models/Especialidad.cs), no el ViewModel.
+                -->
+                <DataTemplate x:DataType="models:Especialidad">
+                    <Grid>
+                        <!-- Evita que la fila tocada quede pintada de gris (estado "Selected" transparente). -->
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <!-- ENLACE: SemanticProperties.Description = Nombre (lo lee el lector de pantalla para personas ciegas). -->
+                        <Border
+                            Padding="14,12"
+                            SemanticProperties.Description="{Binding Nombre}"
+                            Style="{StaticResource Card}">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                <!-- ENLACES: Fondo (color de fondo del círculo) e Icono (imagen) de la especialidad. -->
+                                <Border BackgroundColor="{Binding Fondo}" Style="{StaticResource IconCircle}">
+                                    <Image Source="{Binding Icono}" />
+                                </Border>
+                                <!-- ENLACE: Text = Nombre de la especialidad. -->
+                                <Label
+                                    Grid.Column="1"
+                                    Style="{StaticResource BodyBoldLabel}"
+                                    Text="{Binding Nombre}"
+                                    VerticalOptions="Center" />
+                                <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

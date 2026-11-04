@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Crear cuenta (registro)
+    VIEWMODEL: RegistroViewModel.cs  ·  conexión: BindingContext en RegistroPage.xaml.cs
+    Es la pantalla con más campos. Mismo patrón que Datos personales:
+    Text = Dato (doble vía) + Error = DatoError.
+    Tiene dos modos según EsGoogle:
+      - Registro normal (PideContrasena = true): se ven los campos de contraseña.
+      - Registro con Google (EsGoogle = true): se ocultan las contraseñas y el
+        correo queda de solo lectura. TODO eso lo hacen los IsVisible enlazados;
+        el ViewModel solo cambia EsGoogle y la pantalla se reacomoda sola.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.RegistroPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="Crear cuenta"
+    x:DataType="vm:RegistroViewModel"
+    Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="22,22,22,32" Spacing="16">
+
+            <VerticalStackLayout Spacing="6">
+                <Label
+                    SemanticProperties.HeadingLevel="Level1"
+                    Style="{StaticResource TitleLabel}"
+                    Text="Registrate" />
+                <Label Style="{StaticResource SecondaryLabel}" Text="Completá tus datos tal como figuran en tu DNI. Los campos con * son obligatorios." />
+            </VerticalStackLayout>
+
+            <!-- Opción rápida: registrarse con Google -->
+            <!-- ENLACE: IsVisible = PideContrasena (el botón de Google se oculta si ya se eligió Google). -->
+            <VerticalStackLayout IsVisible="{Binding PideContrasena}" Spacing="12">
+                <!-- ENLACE DE COMANDO: RegistrarseConGoogleCommand → trae nombre y correo de la cuenta de Google. -->
+                <Button
+                    Command="{Binding RegistrarseConGoogleCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    SemanticProperties.Hint="Completa tu nombre y correo con tu cuenta de Gmail"
+                    Style="{StaticResource GoogleButton}"
+                    Text="Registrarse con Google" />
+                <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
+                    <BoxView Style="{StaticResource Divider}" VerticalOptions="Center" />
+                    <Label
+                        Grid.Column="1"
+                        Style="{StaticResource CaptionLabel}"
+                        Text="o completá el formulario"
+                        VerticalOptions="Center" />
+                    <BoxView
+                        Grid.Column="2"
+                        Style="{StaticResource Divider}"
+                        VerticalOptions="Center" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Aviso cuando se registra con Google -->
+            <!-- ENLACE: IsVisible = EsGoogle (aviso azul solo en modo Google). -->
+            <Border IsVisible="{Binding EsGoogle}" Style="{StaticResource InfoBox}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Image
+                        HeightRequest="24"
+                        Source="ic_google.png"
+                        VerticalOptions="Start"
+                        WidthRequest="24" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            Text="Vinculando con tu cuenta de Google"
+                            TextColor="{StaticResource PrimaryDark}" />
+                        <Label
+                            FontSize="13"
+                            Text="Verificá tu nombre y correo. Solo resta completar DNI, celular y obra social para darte de alta."
+                            TextColor="{StaticResource PrimaryDark}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Datos personales -->
+            <Label Style="{StaticResource SectionLabel}" Text="Datos personales" />
+
+            <!-- ENLACES: Text = Nombre, Error = NombreError. -->
+            <controls:FormEntry
+                Title="Nombre/s *"
+                Error="{Binding NombreError}"
+                Icon="ic_person.png"
+                Keyboard="Text"
+                MaxLength="60"
+                Placeholder="Ej: María José"
+                Text="{Binding Nombre}" />
+
+            <!-- ENLACES: Text = Apellido, Error = ApellidoError. -->
+            <controls:FormEntry
+                Title="Apellido/s *"
+                Error="{Binding ApellidoError}"
+                Icon="ic_person.png"
+                Keyboard="Text"
+                MaxLength="60"
+                Placeholder="Ej: Fernández"
+                Text="{Binding Apellido}" />
+
+            <!-- ENLACES: Text = Telefono, Error = TelefonoError. -->
+            <controls:FormEntry
+                Title="Celular *"
+                Error="{Binding TelefonoError}"
+                Icon="ic_phone.png"
+                Keyboard="Telephone"
+                MaxLength="10"
+                Placeholder="Ej: 3704123456"
+                Text="{Binding Telefono}" />
+
+            <!--
+                ENLACES: Text = Email, Error = EmailError.
+                ENLACE: IsReadOnly = EsGoogle (con Google, el correo no se puede cambiar).
+            -->
+            <controls:FormEntry
+                Title="Correo electrónico * (para avisos de tus turnos)"
+                Error="{Binding EmailError}"
+                Icon="ic_mail.png"
+                Keyboard="Email"
+                MaxLength="120"
+                IsReadOnly="{Binding EsGoogle}"
+                Placeholder="nombre@email.com"
+                Text="{Binding Email}" />
+
+
+            <!-- Cobertura -->
+            <Label
+                Margin="0,6,0,0"
+                Style="{StaticResource SectionLabel}"
+                Text="Cobertura médica" />
+
+            <!-- Obra social: lista desplegable (Picker). -->
+            <VerticalStackLayout Spacing="6">
+                <Label Style="{StaticResource FieldLabel}" Text="Obra social *" />
+                <Border Style="{StaticResource InputBorder}">
+                    <Border.Triggers>
+                        <!-- DATATRIGGER con convertidor HasText: borde rojo si hay error. -->
+                        <DataTrigger
+                            Binding="{Binding ObraSocialError, Converter={StaticResource HasText}}"
+                            TargetType="Border"
+                            Value="True">
+                            <Setter Property="Stroke" Value="{StaticResource Danger}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Image
+                            HeightRequest="20"
+                            Source="ic_health.png"
+                            VerticalOptions="Center"
+                            WidthRequest="20" />
+                        <!-- ENLACES: ItemsSource = ObrasSocialesDisponibles, SelectedItem = ObraSocial (doble vía). -->
+                        <Picker
+                            Grid.Column="1"
+                            Title="Seleccioná tu obra social"
+                            ItemsSource="{Binding ObrasSocialesDisponibles}"
+                            SelectedItem="{Binding ObraSocial}"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+                <!-- Mensaje de error de la obra social. -->
+                <Label
+                    IsVisible="{Binding ObraSocialError, Converter={StaticResource HasText}}"
+                    Style="{StaticResource ErrorLabel}"
+                    Text="{Binding ObraSocialError}" />
+            </VerticalStackLayout>
+
+            <!-- ENLACES: Text = NumeroAfiliado, Error = NumeroAfiliadoError. -->
+            <controls:FormEntry
+                Title="N° de afiliado (opcional)"
+                Error="{Binding NumeroAfiliadoError}"
+                Icon="ic_number.png"
+                MaxLength="30"
+                Placeholder="Ej: 123456/01"
+                Text="{Binding NumeroAfiliado}" />
+
+            <!-- Acceso -->
+            <Label
+                Margin="0,6,0,0"
+                Style="{StaticResource SectionLabel}"
+                Text="Datos de acceso" />
+
+            <!-- ENLACE: IsVisible = PideContrasena (aviso para registro normal). -->
+            <Border IsVisible="{Binding PideContrasena}" Style="{StaticResource InfoBox}">
+                <Label
+                    FontSize="13"
+                    Text="Vas a ingresar a la app con tu DNI y la contraseña que elijas acá."
+                    TextColor="{StaticResource PrimaryDark}" />
+            </Border>
+
+            <!-- ENLACE: IsVisible = EsGoogle (aviso para registro con Google). -->
+            <Border IsVisible="{Binding EsGoogle}" Style="{StaticResource InfoBox}">
+                <Label
+                    FontSize="13"
+                    Text="Te estás registrando con tu cuenta de Google: no necesitás crear contraseña. La próxima vez tocá Continuar con Google."
+                    TextColor="{StaticResource PrimaryDark}" />
+            </Border>
+
+            <!-- ENLACES: Text = Dni, Error = DniError. El DNI puede venir ya cargado desde Login. -->
+            <controls:FormEntry
+                Title="DNI (será tu usuario) *"
+                Error="{Binding DniError}"
+                Icon="ic_id.png"
+                Keyboard="Numeric"
+                MaxLength="8"
+                Placeholder="Sin puntos. Ej: 38123456"
+                Text="{Binding Dni}" />
+
+            <!-- ENLACES: Text = Password, Error = PasswordError, IsVisible = PideContrasena. -->
+            <controls:FormEntry
+                Title="Contraseña *"
+                IsVisible="{Binding PideContrasena}"
+                Error="{Binding PasswordError}"
+                Icon="ic_lock.png"
+                IsPassword="True"
+                MaxLength="64"
+                Placeholder="Mínimo 8 caracteres"
+                Text="{Binding Password}" />
+
+            <!-- ENLACES: Text = ConfirmarPassword, Error = ConfirmarPasswordError, IsVisible = PideContrasena. -->
+            <controls:FormEntry
+                Title="Repetir contraseña *"
+                IsVisible="{Binding PideContrasena}"
+                Error="{Binding ConfirmarPasswordError}"
+                Icon="ic_lock.png"
+                IsPassword="True"
+                MaxLength="64"
+                Placeholder="Volvé a escribirla"
+                ReturnType="Done"
+                Text="{Binding ConfirmarPassword}" />
+
+            <Label
+                Margin="4,-6,0,0"
+                IsVisible="{Binding PideContrasena}"
+                Style="{StaticResource CaptionLabel}"
+                Text="Usá al menos 8 caracteres combinando letras y números." />
+
+            <!-- Términos -->
+            <!-- Términos y condiciones. -->
+            <VerticalStackLayout Spacing="2">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                    <!-- ENLACE DOBLE VÍA: IsChecked = AceptaTerminos (tildar la casilla cambia la propiedad). -->
+                    <CheckBox IsChecked="{Binding AceptaTerminos}" VerticalOptions="Center" />
+                    <Label Grid.Column="1" VerticalOptions="Center">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Acepto los " TextColor="{StaticResource TextPrimary}" />
+                                <Span
+                                    FontAttributes="Bold"
+                                    Text="términos y la política de privacidad"
+                                    TextColor="{StaticResource Primary}"
+                                    TextDecorations="Underline">
+                                    <Span.GestureRecognizers>
+                                        <!-- ENLACE DE COMANDO: VerTerminosCommand → muestra los términos (Ley 25.326). -->
+                                        <TapGestureRecognizer Command="{Binding VerTerminosCommand}" />
+                                    </Span.GestureRecognizers>
+                                </Span>
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </Grid>
+                <!-- Mensaje de error si no se aceptaron los términos. -->
+                <Label
+                    IsVisible="{Binding TerminosError, Converter={StaticResource HasText}}"
+                    Style="{StaticResource ErrorLabel}"
+                    Text="{Binding TerminosError}" />
+            </VerticalStackLayout>
+
+            <Grid Margin="0,4,0,0">
+                <!--
+                    ENLACE DE COMANDO: RegistrarCommand → RegistrarAsync() valida todo y llama a la API
+                    (POST api/Cuentas/Registrar). Si el DNI o el correo ya existen, la API responde
+                    409 (conflicto) y el ViewModel muestra el error en el campo correspondiente.
+                -->
+                <Button Command="{Binding RegistrarCommand}" Text="Crear cuenta" />
+                <!-- Ruedita dentro del botón (IsBusy). -->
+                <ActivityIndicator
+                    Margin="0,0,16,0"
+                    HeightRequest="26"
+                    HorizontalOptions="End"
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    Color="White" />
+            </Grid>
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                <Label
+                    FontSize="14"
+                    Style="{StaticResource SecondaryLabel}"
+                    Text="¿Ya tenés cuenta?"
+                    VerticalOptions="Center" />
+                <Label
+                    Style="{StaticResource LinkLabel}"
+                    Text="Iniciá sesión"
+                    VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: IrALoginCommand → vuelve a Login llevando el DNI escrito. -->
+                        <TapGestureRecognizer Command="{Binding IrALoginCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

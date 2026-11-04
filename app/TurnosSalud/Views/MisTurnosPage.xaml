@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Mis turnos (segunda pestaña)
+    VIEWMODEL: MisTurnosViewModel.cs  ·  conexión: BindingContext en MisTurnosPage.xaml.cs
+    Muestra los turnos del usuario en dos solapas: Próximos e Historial.
+    Cada tarjeta tiene sus propios botones (Reprogramar / Cancelar), porque
+    cada turno es un TurnoItem con SUS comandos (ViewModels/Items.cs).
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.MisTurnosPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="Mis turnos"
+    x:DataType="vm:MisTurnosViewModel">
+
+    <ContentPage.ToolbarItems>
+        <!-- Botón de la barra de arriba. ENLACE DE COMANDO: SacarTurnoCommand → Especialidades. -->
+        <ToolbarItem
+            Command="{Binding SacarTurnoCommand}"
+            Order="Primary"
+            Text="+ Nuevo" />
+    </ContentPage.ToolbarItems>
+
+    <Grid Padding="16,14,16,0" RowDefinitions="Auto,Auto,*" RowSpacing="12">
+
+        <!-- Selector de dos solapas hecho con DataTriggers (no hay código en el .xaml.cs). -->
+        <!-- Selector Próximos / Historial -->
+        <Border
+            Padding="4"
+            BackgroundColor="#E8EEF7"
+            StrokeShape="RoundRectangle 12"
+            StrokeThickness="0">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+                <Border
+                    Padding="0,10"
+                    BackgroundColor="Transparent"
+                    StrokeShape="RoundRectangle 9"
+                    StrokeThickness="0">
+                    <!-- DATATRIGGER: cuando MostrandoProximos = True, la solapa se pinta blanca (activa). -->
+                    <Border.Triggers>
+                        <DataTrigger Binding="{Binding MostrandoProximos}" TargetType="Border" Value="True">
+                            <Setter Property="BackgroundColor" Value="White" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <!--
+                        ENLACE DE COMANDO: VerProximosCommand → el ViewModel pone MostrandoProximos = true
+                        y vuelve a filtrar. Las dos solapas se repintan solas por los DataTriggers.
+                    -->
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding VerProximosCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        HorizontalOptions="Center"
+                        Text="Próximos"
+                        TextColor="{StaticResource TextSecondary}">
+                        <!-- DATATRIGGER: texto azul cuando la solapa está activa. -->
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding MostrandoProximos}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource Primary}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Border>
+                <Border
+                    Grid.Column="1"
+                    Padding="0,10"
+                    BackgroundColor="Transparent"
+                    StrokeShape="RoundRectangle 9"
+                    StrokeThickness="0">
+                    <!--
+                        DATATRIGGER: MostrandoHistorial es lo contrario de MostrandoProximos
+                        (propiedad calculada, avisada con [NotifyPropertyChangedFor]).
+                    -->
+                    <Border.Triggers>
+                        <DataTrigger Binding="{Binding MostrandoHistorial}" TargetType="Border" Value="True">
+                            <Setter Property="BackgroundColor" Value="White" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <!-- ENLACE DE COMANDO: VerHistorialCommand → muestra los turnos pasados o cancelados. -->
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding VerHistorialCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        HorizontalOptions="Center"
+                        Text="Historial"
+                        TextColor="{StaticResource TextSecondary}">
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding MostrandoHistorial}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource Primary}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ENLACE: Resumen ("Tenés 2 turnos pendientes"). -->
+        <Label
+            Grid.Row="1"
+            Style="{StaticResource SecondaryLabel}"
+            Text="{Binding Resumen}" />
+
+        <!--
+            RefreshView = "tirar hacia abajo para actualizar".
+            ENLACE DE COMANDO: Command = CargarCommand → vuelve a pedir los turnos a la API.
+            ENLACE DOBLE VÍA: IsRefreshing. La vista lo pone en true al tirar; el
+            ViewModel lo vuelve a false cuando termina (y la ruedita desaparece).
+        -->
+        <RefreshView
+            Grid.Row="2"
+            Command="{Binding CargarCommand}"
+            IsRefreshing="{Binding IsRefreshing}">
+            <!-- LISTA ENLAZADA: ItemsSource = Turnos (ObservableCollection de TurnoItem). -->
+            <CollectionView ItemsSource="{Binding Turnos}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="16" Color="Transparent" />
+                </CollectionView.Footer>
+
+                <!-- Lo que se ve cuando no hay turnos en la solapa elegida. -->
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="24,40" Spacing="12">
+                        <Image
+                            HeightRequest="80"
+                            HorizontalOptions="Center"
+                            Source="ic_calendar_empty.png"
+                            WidthRequest="80" />
+                        <!-- ENLACE: TextoVacio (cambia según la solapa). -->
+                        <Label
+                            HorizontalTextAlignment="Center"
+                            Style="{StaticResource SecondaryLabel}"
+                            FontSize="15"
+                            Text="{Binding TextoVacio}" />
+                        <!-- ENLACES: SacarTurnoCommand, y IsVisible = MostrandoProximos (solo en Próximos). -->
+                        <Button
+                            Margin="0,8,0,0"
+                            Command="{Binding SacarTurnoCommand}"
+                            HorizontalOptions="Center"
+                            IsVisible="{Binding MostrandoProximos}"
+                            Text="Sacar un turno"
+                            WidthRequest="220" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <!--
+                        PLANTILLA DE CADA TURNO. x:DataType="vm:TurnoItem".
+                        Los datos están en Detalle (un TurnoDetalle), por eso los enlaces dicen Detalle.Algo.
+                    -->
+                    <DataTemplate x:DataType="vm:TurnoItem">
+                        <Border Padding="0" Style="{StaticResource Card}">
+                            <VerticalStackLayout Spacing="0">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="0">
+                                    <!-- ENLACES: Detalle.DiaSemanaCorto, Detalle.DiaNumero y Detalle.MesCorto. -->
+                                    <!-- Fecha -->
+                                    <VerticalStackLayout
+                                        Padding="0,14"
+                                        BackgroundColor="{StaticResource PrimaryLight}"
+                                        Spacing="0"
+                                        WidthRequest="70">
+                                        <Label
+                                            FontSize="12"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Detalle.DiaSemanaCorto}"
+                                            TextColor="{StaticResource Primary}" />
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="24"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Detalle.DiaNumero}"
+                                            TextColor="{StaticResource PrimaryDark}" />
+                                        <Label
+                                            FontSize="12"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Detalle.MesCorto}"
+                                            TextColor="{StaticResource Primary}" />
+                                    </VerticalStackLayout>
+
+                                    <!-- ENLACES: nombre del médico, especialidad, hora, sede y código. -->
+                                    <!-- Datos -->
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Padding="14,12"
+                                        Spacing="3">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Label
+                                                LineBreakMode="TailTruncation"
+                                                Style="{StaticResource BodyBoldLabel}"
+                                                Text="{Binding Detalle.Medico.NombreCompleto}" />
+                                            <!--
+                                                ENLACES DE COLOR: Detalle.EstadoFondo y Detalle.EstadoColor pintan la etiqueta
+                                                del estado (Confirmado, Finalizado, Reprogramado, Cancelado). Un Binding puede devolver un Color,
+                                                no solo textos: los calcula Models/TurnoDetalle.cs según el Estado.
+                                            -->
+                                            <Border
+                                                Grid.Column="1"
+                                                Padding="8,2"
+                                                BackgroundColor="{Binding Detalle.EstadoFondo}"
+                                                StrokeShape="RoundRectangle 8"
+                                                StrokeThickness="0"
+                                                VerticalOptions="Center">
+                                                <Label
+                                                    FontAttributes="Bold"
+                                                    FontSize="11"
+                                                    Text="{Binding Detalle.EstadoTexto}"
+                                                    TextColor="{Binding Detalle.EstadoColor}" />
+                                            </Border>
+                                        </Grid>
+                                        <Label Style="{StaticResource CaptionLabel}" Text="{Binding Detalle.Medico.EspecialidadNombre}" />
+                                        <Label Style="{StaticResource CaptionLabel}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span FontAttributes="Bold" Text="{Binding Detalle.HoraTexto}" TextColor="{StaticResource TextPrimary}" />
+                                                    <Span Text=" · " />
+                                                    <Span Text="{Binding Detalle.Medico.Sede}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label
+                                            Style="{StaticResource CaptionLabel}"
+                                            Text="{Binding Detalle.Codigo}"
+                                            TextColor="{StaticResource TextMuted}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <!--
+                                    ENLACE: IsVisible = Detalle.PuedeModificar. Los botones solo aparecen si el
+                                    turno está activo y faltan más de 2 horas (regla del negocio).
+                                -->
+                                <!-- Acciones (solo si se puede modificar) -->
+                                <VerticalStackLayout IsVisible="{Binding Detalle.PuedeModificar}" Spacing="0">
+                                    <BoxView Style="{StaticResource Divider}" />
+                                    <Grid
+                                        Padding="12,10"
+                                        ColumnDefinitions="*,*"
+                                        ColumnSpacing="10">
+                                        <!--
+                                            ENLACE DE COMANDO: ReprogramarCommand de ESTE turno → abre la agenda del médico
+                                            en modo reprogramación (lleva reprogramaTurnoId).
+                                        -->
+                                        <Button
+                                            Command="{Binding ReprogramarCommand}"
+                                            Style="{StaticResource SmallOutlineButton}"
+                                            Text="Reprogramar" />
+                                        <!--
+                                            ENLACE DE COMANDO: CancelarCommand de ESTE turno → pide confirmación y llama
+                                            a la API (PUT api/Turnos/Cancelar/{id}).
+                                        -->
+                                        <Button
+                                            Grid.Column="1"
+                                            Command="{Binding CancelarCommand}"
+                                            Style="{StaticResource DangerOutlineButton}"
+                                            Text="Cancelar turno" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

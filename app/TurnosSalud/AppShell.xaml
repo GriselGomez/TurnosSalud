@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    =====================================================================
+    AppShell.xaml: el "mapa" de pantallas de la app.
+      - ShellContent "welcome": pantalla de Bienvenida (sin pestañas).
+      - TabBar "main": la barra de 3 pestañas de abajo (Inicio, Turnos, Perfil).
+    ContentTemplate="{DataTemplate views:HomePage}" significa "creá la página
+    recién cuando se necesite" (y la crea la inyección de dependencias,
+    que le entrega su ViewModel).
+    Shell.BackgroundColor, TabBarTitleColor...: colores de las barras (fijos).
+    =====================================================================
+-->
+<Shell
+    x:Class="TurnosSalud.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:TurnosSalud.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="{StaticResource Primary}"
+    Shell.ForegroundColor="White"
+    Shell.TitleColor="White"
+    Shell.DisabledColor="#B3FFFFFF"
+    Shell.UnselectedColor="#B3FFFFFF"
+    Shell.TabBarBackgroundColor="White"
+    Shell.TabBarForegroundColor="{StaticResource Primary}"
+    Shell.TabBarTitleColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource TextMuted}"
+    Shell.NavBarHasShadow="False">
+
+    <!-- Bienvenida (sin barra de pestañas) -->
+    <ShellContent
+        Route="welcome"
+        Shell.NavBarIsVisible="False"
+        ContentTemplate="{DataTemplate views:WelcomePage}" />
+
+    <!-- Área principal, disponible tras iniciar sesión -->
+    <TabBar Route="main">
+        <Tab Title="Inicio" Icon="tab_home.png" Route="home">
+            <ShellContent Route="inicio" ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+        <Tab Title="Turnos" Icon="tab_turnos.png" Route="turnos">
+            <ShellContent Route="lista" ContentTemplate="{DataTemplate views:MisTurnosPage}" />
+        </Tab>
+        <Tab Title="Perfil" Icon="tab_perfil.png" Route="perfil">
+            <ShellContent Route="cuenta" ContentTemplate="{DataTemplate views:PerfilPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

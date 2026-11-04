@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Bienvenida (WelcomePage)  ·  primera pantalla de la app
+    =====================================================================
+    CÓMO LEER ESTE ARCHIVO (vale para TODAS las pantallas):
+
+    MVVM = Model · View · ViewModel (Modelo · Vista · Modelo de la vista).
+      - VISTA = este .xaml. Solo dibuja: botones, textos, colores. No decide nada.
+      - VIEWMODEL = WelcomeViewModel.cs (carpeta ViewModels). Tiene los datos
+        que se muestran y los métodos que se ejecutan al tocar algo.
+      - MODELO = las clases de datos (carpeta Models): Usuario, Medico, Turno...
+
+    ANTES (código detrás, "code-behind"): en el .xaml.cs escribíamos
+        btnIngresar.Clicked += ...;   lblSaludo.Text = "Hola";
+    o sea, el C# tocaba los controles por su nombre (x:Name).
+    AHORA (MVVM): la vista y el ViewModel se conectan por ENLACE DE DATOS
+    (data binding). Ninguno nombra al otro: los une el texto {Binding ...}.
+
+      {Binding Listo}             lee la propiedad Listo del ViewModel. Cuando
+                                  Listo cambia, la pantalla se actualiza SOLA
+                                  (porque en el ViewModel tiene [ObservableProperty]).
+      Command="{Binding IrALoginCommand}"
+                                  al tocar el botón se ejecuta el método
+                                  IrALoginAsync() del ViewModel ([RelayCommand]
+                                  genera la propiedad IrALoginCommand).
+      {StaticResource Primary}    NO es enlace: es un valor fijo (color, estilo)
+                                  definido en Resources/Styles. Nunca cambia.
+
+    x:DataType="vm:WelcomeViewModel" (más abajo) dice a qué clase apuntan los
+    {Binding}. Así el compilador los revisa: si escribimos mal un nombre, avisa
+    el error al compilar en vez de fallar en silencio ("binding compilado").
+
+    ¿Quién conecta las dos partes? WelcomePage.xaml.cs hace
+        BindingContext = viewModel;
+    y desde ese momento todos los {Binding} de esta página leen ese objeto.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.WelcomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    x:DataType="vm:WelcomeViewModel"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <!-- Fondo degradado azul: valores fijos, no hay enlace de datos. -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#1468E0" />
+            <GradientStop Offset="1" Color="#0842A0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid Padding="28,24,28,28" RowDefinitions="*,Auto">
+
+        <!-- Logo, nombre y lema: textos fijos (Text="..." sin Binding). -->
+        <!-- Marca -->
+        <VerticalStackLayout
+            Grid.Row="0"
+            Spacing="8"
+            VerticalOptions="Center">
+            <Image
+                HeightRequest="108"
+                HorizontalOptions="Center"
+                SemanticProperties.Description="Logo de Turnos Salud"
+                Source="logo_turnos.png"
+                WidthRequest="108" />
+            <Label
+                Margin="0,14,0,0"
+                FontAttributes="Bold"
+                FontSize="34"
+                HorizontalOptions="Center"
+                SemanticProperties.HeadingLevel="Level1"
+                Text="Turnos Salud"
+                TextColor="White" />
+            <!-- TextColor usa StaticResource: color fijo definido en Resources/Styles/Colors.xaml. -->
+            <Label
+                FontSize="16"
+                HorizontalOptions="Center"
+                Text="Tu salud, nuestra prioridad"
+                TextColor="{StaticResource OnPrimarySoft}" />
+            <Image
+                Margin="0,32,0,0"
+                HeightRequest="150"
+                HorizontalOptions="Center"
+                SemanticProperties.Description="Ilustración de un corazón con pulso"
+                Source="heart_pulse.png" />
+        </VerticalStackLayout>
+
+        <!-- Zona de acciones (parte de abajo de la pantalla). -->
+        <!-- Acciones -->
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+            <!--
+                ENLACE: IsRunning e IsVisible = IsBusy (heredada de BaseViewModel).
+                Mientras el ViewModel trabaja (IsBusy = true) la ruedita gira y se ve;
+                cuando termina (IsBusy = false) desaparece. El C# nunca toca la ruedita.
+            -->
+            <ActivityIndicator
+                HeightRequest="36"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Color="White" />
+
+            <!--
+                ENLACE: IsVisible = Listo. Los botones aparecen recién cuando el ViewModel
+                terminó de revisar si había una sesión guardada (OnAppearingAsync pone Listo = true).
+            -->
+            <VerticalStackLayout IsVisible="{Binding Listo}" Spacing="14">
+                <!-- Opción rápida para quien tiene cuenta de Google -->
+                <!--
+                    ENLACE DE COMANDO: al tocar, ejecuta ContinuarConGoogleAsync() del ViewModel.
+                    IsEnabled = IsNotBusy: el botón se desactiva mientras se procesa, para no tocar dos veces.
+                -->
+                <Button
+                    Command="{Binding ContinuarConGoogleCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    SemanticProperties.Hint="Ingresá con tu cuenta de Gmail"
+                    Style="{StaticResource GoogleButtonPill}"
+                    Text="Continuar con Google" />
+
+                <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
+                    <BoxView HeightRequest="1" Opacity="0.5" VerticalOptions="Center" Color="White" />
+                    <Label
+                        Grid.Column="1"
+                        FontSize="13"
+                        Text="o con tu DNI"
+                        TextColor="{StaticResource OnPrimarySoft}"
+                        VerticalOptions="Center" />
+                    <BoxView Grid.Column="2" HeightRequest="1" Opacity="0.5" VerticalOptions="Center" Color="White" />
+                </Grid>
+
+                <!-- ENLACE DE COMANDO: IrALoginCommand → IrALoginAsync() → navega a la pantalla Login. -->
+                <Button
+                    Command="{Binding IrALoginCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    SemanticProperties.Hint="Ingresá con tu DNI y contraseña"
+                    Style="{StaticResource OutlineWhiteButton}"
+                    Text="Ingresar con DNI" />
+
+                <HorizontalStackLayout Margin="0,4,0,0" HorizontalOptions="Center" Spacing="4">
+                    <Label
+                        FontSize="14"
+                        Text="¿No tenés cuenta?"
+                        TextColor="{StaticResource OnPrimarySoft}"
+                        VerticalOptions="Center" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        Text="Creala acá"
+                        TextColor="White"
+                        TextDecorations="Underline"
+                        VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <!--
+                                Un Label no tiene Command, por eso se le agrega un "reconocedor de toque".
+                                ENLACE DE COMANDO: IrARegistroCommand → navega a la pantalla Registro.
+                            -->
+                            <TapGestureRecognizer Command="{Binding IrARegistroCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </HorizontalStackLayout>
+
+                <Label
+                    Margin="0,8,0,0"
+                    FontSize="13"
+                    HorizontalTextAlignment="Center"
+                    LineHeight="1.3"
+                    Text="Accedé a turnos médicos de forma rápida y sencilla.&#10;Formosa Capital"
+                    TextColor="{StaticResource OnPrimarySoft}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

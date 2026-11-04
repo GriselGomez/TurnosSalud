@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    =====================================================================
+    PANTALLA: Mi perfil (tercera pestaña)
+    VIEWMODEL: PerfilViewModel.cs  ·  conexión: BindingContext en PerfilPage.xaml.cs
+    Es un menú: casi todo son tarjetas con un ENLACE DE COMANDO cada una.
+    =====================================================================
+-->
+<ContentPage
+    x:Class="TurnosSalud.Views.PerfilPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TurnosSalud.Controls"
+    xmlns:vm="clr-namespace:TurnosSalud.ViewModels"
+    Title="Mi perfil"
+    x:DataType="vm:PerfilViewModel">
+
+    <ContentPage.ToolbarItems>
+        <!-- ENLACE DE COMANDO: el engranaje de arriba abre Datos personales. -->
+        <ToolbarItem
+            Command="{Binding DatosPersonalesCommand}"
+            IconImageSource="ic_settings.png"
+            Text="Configuración" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Tarjeta del usuario: tocarla también abre Datos personales. -->
+            <!-- Tarjeta del usuario -->
+            <Grid
+                Padding="18,18"
+                BackgroundColor="{StaticResource Surface}"
+                ColumnDefinitions="Auto,*,Auto"
+                ColumnSpacing="14">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding DatosPersonalesCommand}" />
+                </Grid.GestureRecognizers>
+                <!-- ENLACE: Initials = Iniciales del usuario. Color es fijo (StaticResource Primary). -->
+                <controls:AvatarView
+                    Color="{StaticResource Primary}"
+                    Initials="{Binding Iniciales}"
+                    Size="64" />
+                <VerticalStackLayout
+                    Grid.Column="1"
+                    Spacing="2"
+                    VerticalOptions="Center">
+                    <!-- ENLACES: NombreCompleto y Email del usuario de la sesión. -->
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        LineBreakMode="TailTruncation"
+                        Text="{Binding NombreCompleto}" />
+                    <Label
+                        LineBreakMode="TailTruncation"
+                        Style="{StaticResource SecondaryLabel}"
+                        Text="{Binding Email}" />
+                </VerticalStackLayout>
+                <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+            </Grid>
+            <BoxView Style="{StaticResource Divider}" />
+
+            <!-- Menú: cada Border tiene un TapGestureRecognizer enlazado a un comando distinto. -->
+            <!-- Menú -->
+            <VerticalStackLayout Padding="16,16" Spacing="10">
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: MisTurnosCommand → pestaña Mis turnos. -->
+                        <TapGestureRecognizer Command="{Binding MisTurnosCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_calendar.png" WidthRequest="24" />
+                        <Label Grid.Column="1" Style="{StaticResource BodyBoldLabel}" Text="Mis turnos" VerticalOptions="Center" />
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: DatosPersonalesCommand → pantalla Datos personales. -->
+                        <TapGestureRecognizer Command="{Binding DatosPersonalesCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_user.png" WidthRequest="24" />
+                        <Label Grid.Column="1" Style="{StaticResource BodyBoldLabel}" Text="Datos personales" VerticalOptions="Center" />
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!--
+                            ENLACE DE COMANDO: ObrasSocialesCommand → muestra la lista de obras sociales y guarda
+                            la elegida en la base (PUT api/Cuentas/Editar).
+                        -->
+                        <TapGestureRecognizer Command="{Binding ObrasSocialesCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_card.png" WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Obras sociales" />
+                            <!-- ENLACE: ObraSocial actual (se actualiza sola después de cambiarla). -->
+                            <Label Style="{StaticResource CaptionLabel}" Text="{Binding ObraSocial}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: NotificacionesCommand → activa o desactiva los recordatorios. -->
+                        <TapGestureRecognizer Command="{Binding NotificacionesCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_bell_blue.png" WidthRequest="24" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                            <Label Style="{StaticResource BodyBoldLabel}" Text="Notificaciones" />
+                            <!-- ENLACE: EstadoNotificaciones ("Activadas" o "Desactivadas"). -->
+                            <Label Style="{StaticResource CaptionLabel}" Text="{Binding EstadoNotificaciones}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: AyudaCommand → muestra cómo sacar un turno. -->
+                        <TapGestureRecognizer Command="{Binding AyudaCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_help.png" WidthRequest="24" />
+                        <Label Grid.Column="1" Style="{StaticResource BodyBoldLabel}" Text="Ayuda" VerticalOptions="Center" />
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <Border Padding="14,12" Style="{StaticResource Card}">
+                    <Border.GestureRecognizers>
+                        <!-- ENLACE DE COMANDO: CerrarSesionCommand → pide confirmación y vuelve a Bienvenida. -->
+                        <TapGestureRecognizer Command="{Binding CerrarSesionCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Image HeightRequest="24" Source="ic_logout.png" WidthRequest="24" />
+                        <Label
+                            Grid.Column="1"
+                            Style="{StaticResource BodyBoldLabel}"
+                            Text="Cerrar sesión"
+                            TextColor="{StaticResource Danger}"
+                            VerticalOptions="Center" />
+                        <Image Grid.Column="2" Style="{StaticResource Chevron}" />
+                    </Grid>
+                </Border>
+
+                <!-- ENLACE: Version (número de versión de la app, propiedad de solo lectura). -->
+                <Label
+                    Margin="0,14,0,0"
+                    HorizontalOptions="Center"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="{Binding Version}"
+                    TextColor="{StaticResource TextMuted}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
