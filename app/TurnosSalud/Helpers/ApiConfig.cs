@@ -22,10 +22,10 @@ public static class ApiConfig
 #endif
 
     // 2) Hosting (MonsterASP.NET): pegar acá la dirección pública del sitio, con la barra final.
-    public const string Hosting = "https://PEGAR-SITIO.runasp.net/";
+    public const string Hosting = "https://turnossalud-api.runasp.net/";
 
     // Cambiar a true para usar la API publicada (por ejemplo, para instalar el APK en un celular).
-    public const bool UsarHosting = false;
+    public const bool UsarHosting = true;
 
     // La propiedad que usa ApiClient: elige una de las dos direcciones.
     public static string Url => UsarHosting ? Hosting : Local;
