@@ -13,8 +13,8 @@ namespace TurnosSalud.Data;
 // en el recuadro "Cuenta de demostración" del Login.
 public static class SeedData
 {
-    public const string DniDemo = "23002826";
-    public const string EmailDemo = "griselgo73@hotmail.com";
+    public const string DniDemo = "11222333";
+    public const string EmailDemo = "paciente.demo@example.com";
     public const string PasswordDemo = "Turnos2026";
 
     private const string HospitalCentral = "Hospital Central de Formosa";
@@ -109,7 +109,7 @@ public static class SeedData
             Apellido = "Gómez",
             Dni = DniDemo,
             Email = EmailDemo,
-            Telefono = "3704578534",
+            Telefono = "3704000000",
             ObraSocial = "IASEP",
             NumeroAfiliado = string.Empty,
             PasswordHash = hash,

@@ -247,9 +247,9 @@ UNION ALL SELECT IdMedico, 1 FROM MEDICO WHERE Matricula = 'MP 2045'
 UNION ALL SELECT IdMedico, 3 FROM MEDICO WHERE Matricula = 'MP 2045'
 UNION ALL SELECT IdMedico, 5 FROM MEDICO WHERE Matricula = 'MP 2045';
 
--- Paciente de prueba: DNI 23002826, contraseña Turnos2026 (guardada como hash PBKDF2-SHA256 con salt).
+-- Paciente de prueba: DNI 11222333, contraseña Turnos2026 (guardada como hash PBKDF2-SHA256 con salt).
 INSERT INTO USUARIO (Nombre, Apellido, Dni, Email, Telefono, IdObraSocial, NumeroAfiliado, PasswordHash, PasswordSalt)
-VALUES (N'Griselda Elizabeth', N'Gómez', '23002826', 'griselgo73@hotmail.com', '3704578534',
+VALUES (N'Griselda Elizabeth', N'Gómez', '11222333', 'paciente.demo@example.com', '3704000000',
         (SELECT IdObraSocial FROM OBRA_SOCIAL WHERE Nombre = N'IASEP'), '',
         'cFbKksvmEXc3xvy5bwyQaYZV1LZzOoqrP/eFTwdwSEU=', '8h/JpqNDAXLqDrGQ8omsOg==');
 GO

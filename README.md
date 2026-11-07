@@ -11,7 +11,7 @@ turnos-salud/
            TurnosSaludDB_hosting.sql  → base del hosting (MonsterASP.NET)
 ```
 
-Cuenta de prueba: **DNI 23002826 · contraseña Turnos2026**
+Cuenta de prueba: **DNI 11222333 · contraseña Turnos2026**
 
 Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, cada pantalla, ViewModel, servicio y controlador tiene comentarios en español (sobre todo los `{Binding}` de los `.xaml`).
 
@@ -32,7 +32,7 @@ Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, 
 2. Elegir el perfil **http** (flecha al lado del botón verde) y presionar **F5**. Se abre Swagger en `http://localhost:5161/swagger`.
 3. Probar, en este orden:
    - `GET /api/Catalogo/Especialidades` → **Try it out** → **Execute**: devuelve las 10 especialidades.
-   - `POST /api/Cuentas/Login` con `{ "dni": "23002826", "password": "Turnos2026" }`: devuelve `"estado": "Exitoso"` y los datos de la paciente.
+   - `POST /api/Cuentas/Login` con `{ "dni": "11222333", "password": "Turnos2026" }`: devuelve `"estado": "Exitoso"` y los datos de la paciente.
    - `POST /api/Cuentas/Login` con una contraseña mal: devuelve **401** y `"PasswordIncorrecta"`.
 4. **Dejar la API corriendo** mientras se usa la app.
 

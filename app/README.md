@@ -21,9 +21,9 @@ La versión anterior con **SQLite local** queda como plan B (ver `MauiProgram.cs
 
 | DNI (usuario) | Contraseña |
 |---|---|
-| `23002826` | `Turnos2026` |
+| `11222333` | `Turnos2026` |
 
-La cuenta precargada es la de **Griselda Elizabeth Gómez** (griselgo73@hotmail.com, obra social IASEP).
+La cuenta precargada es la de **Griselda Elizabeth Gómez** (paciente.demo@example.com, obra social IASEP).
 
 En la pantalla de login hay un botón **"Completar automáticamente"**. También podés registrar cuentas nuevas.
 
