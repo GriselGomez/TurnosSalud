@@ -13,7 +13,7 @@ turnos-salud/
 
 Cuenta de prueba: **DNI 11222333 · contraseña Turnos2026**
 
-Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, cada pantalla, ViewModel, servicio y controlador tiene comentarios en español (sobre todo los `{Binding}` de los `.xaml`).
+Cada pantalla, ViewModel, servicio y controlador tiene comentarios en español que explican su funcionamiento.
 
 ---
 
@@ -79,7 +79,7 @@ Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, 
 | La primera vez el hosting tarda | El plan gratuito "duerme" la API si no se usa | Abrir Swagger un minuto antes de la demo |
 | Google no ingresa | Faltan credenciales en `Services/GoogleAuthConfig.cs` | Igual que antes; el ingreso con DNI siempre funciona |
 
-## Qué cambió en la app (para explicarlo)
+## Qué cambió en la app 
 
 - `Services/Api/` (nuevo): `ApiClient` (HttpClient), `ApiAuthService`, `ApiCatalogoService`, `ApiAgendaService`.
   Implementan las **mismas interfaces** de `Services/Contratos.cs`, por eso **ninguna pantalla cambió**.
