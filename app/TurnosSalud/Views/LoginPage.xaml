@@ -157,7 +157,7 @@
 
             <!-- Ayuda para la demostración -->
             <!-- Recuadro de ayuda con la cuenta de demostración. -->
-            <Border Margin="0,8,0,0" Style="{StaticResource InfoBox}">
+            <Border Margin="0,8,0,0" IsVisible="{Binding MostrarCuentaDemo}" Style="{StaticResource InfoBox}">
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                     <Image
                         HeightRequest="22"

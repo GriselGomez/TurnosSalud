@@ -11,9 +11,9 @@ turnos-salud/
            TurnosSaludDB_hosting.sql  → base del hosting (MonsterASP.NET)
 ```
 
-Cuenta de prueba: **DNI 23002826 · contraseña Turnos2026**
+Cuenta de prueba: **DNI 11222333 · contraseña Turnos2026**
 
-Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, cada pantalla, ViewModel, servicio y controlador tiene comentarios en español (sobre todo los `{Binding}` de los `.xaml`).
+Cada pantalla, ViewModel, servicio y controlador tiene comentarios en español que explican su funcionamiento.
 
 ---
 
@@ -32,7 +32,7 @@ Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, 
 2. Elegir el perfil **http** (flecha al lado del botón verde) y presionar **F5**. Se abre Swagger en `http://localhost:5161/swagger`.
 3. Probar, en este orden:
    - `GET /api/Catalogo/Especialidades` → **Try it out** → **Execute**: devuelve las 10 especialidades.
-   - `POST /api/Cuentas/Login` con `{ "dni": "23002826", "password": "Turnos2026" }`: devuelve `"estado": "Exitoso"` y los datos de la paciente.
+   - `POST /api/Cuentas/Login` con `{ "dni": "11222333", "password": "Turnos2026" }`: devuelve `"estado": "Exitoso"` y los datos de la paciente.
    - `POST /api/Cuentas/Login` con una contraseña mal: devuelve **401** y `"PasswordIncorrecta"`.
 4. **Dejar la API corriendo** mientras se usa la app.
 
@@ -79,7 +79,7 @@ Para entender y explicar el código: **`app/COMO_LEER_EL_CODIGO.md`**. Además, 
 | La primera vez el hosting tarda | El plan gratuito "duerme" la API si no se usa | Abrir Swagger un minuto antes de la demo |
 | Google no ingresa | Faltan credenciales en `Services/GoogleAuthConfig.cs` | Igual que antes; el ingreso con DNI siempre funciona |
 
-## Qué cambió en la app (para explicarlo)
+## Qué cambió en la app 
 
 - `Services/Api/` (nuevo): `ApiClient` (HttpClient), `ApiAuthService`, `ApiCatalogoService`, `ApiAgendaService`.
   Implementan las **mismas interfaces** de `Services/Contratos.cs`, por eso **ninguna pantalla cambió**.

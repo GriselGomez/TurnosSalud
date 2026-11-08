@@ -36,6 +36,13 @@ public sealed partial class LoginViewModel(
     public string DniDemo => SeedData.DniDemo;
     public string PasswordDemo => SeedData.PasswordDemo;
 
+    // El recuadro de la cuenta de demostración solo se muestra al probar desde
+    // Visual Studio (Debug). En el APK (Release) queda oculto.
+#if DEBUG
+    public bool MostrarCuentaDemo => true;
+#else
+    public bool MostrarCuentaDemo => false;
+#endif
     // Recibe parámetros de navegación. Si viene "dni", lo carga en la caja de texto
     // (al asignar Dni, el enlace lo muestra solo en pantalla).
     public void ApplyQueryAttributes(IDictionary<string, object> query)

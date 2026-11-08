@@ -92,7 +92,7 @@
 
                     <BoxView Style="{StaticResource Divider}" />
 
-                    <!-- ENLACE: PacienteTexto ("Nombre Apellido · DNI 23002826"), sale del usuario de la sesión. -->
+                    <!-- ENLACE: PacienteTexto ("Nombre Apellido · DNI 11222333"), sale del usuario de la sesión. -->
                     <!-- Paciente -->
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                         <Image
